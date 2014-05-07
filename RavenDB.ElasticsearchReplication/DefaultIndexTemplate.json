@@ -1,0 +1,30 @@
+﻿{
+    "template" : "ravendb-*",
+    "settings" : {
+        "number_of_shards" : 1
+    },
+    "mappings" : {
+		"_default_" : {
+			"_timestamp" : { "enabled" : true },
+			"dynamic_templates": [
+                { "standard_string": {
+                      "match":              "*", 
+                      "match_mapping_type": "string",
+                      "mapping": {
+                          "type":           "string",
+                          "index":			"not_analyzed"
+                      }
+                }},
+                { "analyzed_string": {
+                      "match":              "*_analyzed", 
+                      "match_mapping_type": "string",
+                      "mapping": {
+                          "type":           "string",
+                          "analyzer":       "english"
+                      }
+                }}
+            ]
+
+		}
+    }
+}
