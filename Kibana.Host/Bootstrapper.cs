@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Nancy.Conventions;
 using Nancy.Responses;
 
@@ -26,7 +27,7 @@ namespace Kibana.Host
                     reqPath = "/index.html";
                 }
 
-                reqPath = "kibana" + reqPath.Replace('/', '\\');
+                reqPath = KibanaFileName + reqPath.Replace('\\', '/');
 
                 var fileName = Path.GetFullPath(Path.Combine(root, reqPath));
                 if (File.Exists(fileName))
@@ -36,8 +37,21 @@ namespace Kibana.Host
 
                 return new SpecialEmbeddedFileResponse(
                     GetType().Assembly,
-                    reqPath);
+                    ZipFilePath,
+                    reqPath,
+                    ctx.Request.Headers);
             });
+        }
+
+        public static string ZipFilePath { get; private set; }
+        private const string KibanaFileName = "kibana-3.0.1";
+
+        static Bootstrapper()
+        {
+            var fullZipPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, KibanaFileName + ".zip");
+            if (File.Exists(fullZipPath) == false)
+                fullZipPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin", KibanaFileName + ".zip");
+            ZipFilePath = fullZipPath;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace Kibana.Host
+﻿using System.IO;
+
+namespace Kibana.Host
 {
     using System;
     using Nancy.Hosting.Self;
@@ -7,6 +9,12 @@
     {
         static void Main(string[] args)
         {
+            if (string.IsNullOrWhiteSpace(Bootstrapper.ZipFilePath) || !File.Exists(Bootstrapper.ZipFilePath))
+            {
+                Console.WriteLine("Unable to find Kibana");
+                return;
+            }
+
             var uri =
                 new Uri("http://localhost:3579");
 
