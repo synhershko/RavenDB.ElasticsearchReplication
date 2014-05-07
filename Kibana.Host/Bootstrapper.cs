@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using Nancy.Conventions;
 using Nancy.Responses;
 
@@ -44,13 +45,17 @@ namespace Kibana.Host
         }
 
         public static string ZipFilePath { get; private set; }
-        private const string KibanaFileName = "kibana-3.0.1";
+        private static string KibanaFileName { get; set; }
 
         static Bootstrapper()
         {
-            var fullZipPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, KibanaFileName + ".zip");
-            if (File.Exists(fullZipPath) == false)
-                fullZipPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin", KibanaFileName + ".zip");
+            var fullZipPath = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "kibana-*.zip").FirstOrDefault();
+            if (fullZipPath == null || File.Exists(fullZipPath) == false)
+                fullZipPath = Directory.GetFiles(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin"), "kibana-*.zip").FirstOrDefault();
+            if (fullZipPath != null)
+            {
+                KibanaFileName = new FileInfo(fullZipPath).Name.Replace(".zip", "");
+            }
             ZipFilePath = fullZipPath;
         }
     }
