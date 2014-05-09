@@ -5,7 +5,6 @@
     },
     "mappings" : {
 		"_default_" : {
-			"_timestamp" : { "enabled" : true },
 			"dynamic_templates": [
                 { "standard_string": {
                       "match":              "*", 

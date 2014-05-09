@@ -156,6 +156,9 @@ namespace Raven.Database.Bundles.ElasticsearchReplication
                     bulkCommands.Add("{\"index\":{\"_index\":\"" + targetIndexName + "\",\"_type\":\"" + tableName + "\"}}");
                 }
 
+                if (!o.ContainsKey("@timestamp"))
+                    o["@timestamp"] = DateTime.UtcNow;
+
                 bulkCommands.Add(o.ToString(Formatting.None));
             }
 		}
