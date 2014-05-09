@@ -18,7 +18,11 @@ namespace Kibana.Host
             var uri =
                 new Uri("http://localhost:3579");
 
-            using (var host = new NancyHost(uri))
+            using (
+                var host =
+                    new NancyHost(
+                        new HostConfiguration {UrlReservations = new UrlReservations {CreateAutomatically = true}}, uri)
+                )
             {
                 host.Start();
 
