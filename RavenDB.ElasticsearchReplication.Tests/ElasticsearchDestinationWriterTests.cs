@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Raven.Database;
-using Raven.Database.Bundles.ElasticsearchReplication;
+using Raven.Bundles.ElasticsearchReplication;
 using Raven.Database.Bundles.SqlReplication;
-using Raven.Database.Config;
 using Raven.Json.Linq;
 
 namespace RavenDB.ElasticsearchReplication.Tests

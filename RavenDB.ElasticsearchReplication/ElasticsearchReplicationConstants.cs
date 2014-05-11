@@ -1,4 +1,4 @@
-﻿namespace Raven.Database.Bundles.ElasticsearchReplication
+﻿namespace Raven.Bundles.ElasticsearchReplication
 {
     public static class ElasticsearchReplicationConstants
     {

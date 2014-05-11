@@ -12,6 +12,7 @@ using Raven.Abstractions.Exceptions;
 using Raven.Abstractions.Extensions;
 using Raven.Abstractions.Logging;
 using Raven.Abstractions.Util;
+using Raven.Database;
 using Raven.Database.Bundles.SqlReplication;
 using Raven.Database.Extensions;
 using Raven.Database.Impl;
@@ -23,7 +24,7 @@ using Raven.Database.Server;
 using Raven.Database.Storage;
 using Raven.Json.Linq;
 
-namespace Raven.Database.Bundles.ElasticsearchReplication
+namespace Raven.Bundles.ElasticsearchReplication
 {
     [InheritedExport(typeof(IStartupTask))]
     [ExportMetadata("Bundle", "elasticsearchReplication")]

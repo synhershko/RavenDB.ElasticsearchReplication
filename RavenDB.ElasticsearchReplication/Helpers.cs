@@ -1,11 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Elasticsearch.Net;
 using Elasticsearch.Net.Connection;
 using Elasticsearch.Net.ConnectionPool;
 
-namespace Raven.Database.Bundles.ElasticsearchReplication
+namespace Raven.Bundles.ElasticsearchReplication
 {
     public static class Helpers
     {

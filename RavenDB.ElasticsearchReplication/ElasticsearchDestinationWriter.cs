@@ -6,12 +6,13 @@ using Elasticsearch.Net;
 using Raven.Abstractions;
 using Raven.Abstractions.Data;
 using Raven.Abstractions.Logging;
+using Raven.Database;
 using Raven.Database.Bundles.SqlReplication;
 using Raven.Database.Extensions;
 using Raven.Imports.Newtonsoft.Json;
 using Raven.Json.Linq;
 
-namespace Raven.Database.Bundles.ElasticsearchReplication
+namespace Raven.Bundles.ElasticsearchReplication
 {
     public class ElasticsearchDestinationWriter :  IDisposable
     {

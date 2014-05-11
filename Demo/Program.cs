@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition.Hosting;
 using System.Threading;
 using FizzWare.NBuilder.Generators;
+using Raven.Bundles.ElasticsearchReplication;
 using Raven.Client.Embedded;
-using Raven.Database.Bundles.ElasticsearchReplication;
 using Raven.Database.Bundles.SqlReplication;
 
 namespace Demo

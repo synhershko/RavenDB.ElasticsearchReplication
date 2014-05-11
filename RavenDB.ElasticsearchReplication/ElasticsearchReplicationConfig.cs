@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Raven.Database.Bundles.SqlReplication;
 
-namespace Raven.Database.Bundles.ElasticsearchReplication
+namespace Raven.Bundles.ElasticsearchReplication
 {
     public class ElasticsearchReplicationConfig : SqlReplicationConfig
     {
