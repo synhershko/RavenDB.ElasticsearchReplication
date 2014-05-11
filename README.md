@@ -51,6 +51,88 @@ You can play with the dashboard by changing the queries, setting different time 
 
 To clear the demo data after the run send an HTTP DELETE command to `http://elasticsearch_host/ravendb-elasticsearch-replication-demo`. Or delete the data folder if working locally, that works too.
 
+## Replication configurations
+
+```csharp
+new ElasticsearchReplicationConfig
+{
+	Id = "Raven/ElasticsearchReplication/Configuration/OrdersAndLines",
+    Name = "OrdersAndLines", // name of the replication config
+
+    // list of elasticsearch nodes in the cluster, at least 1 is required
+    ElasticsearchNodeUrls = new List<Uri>{new Uri(ElasticsearchUrl)},
+
+    // name of the index to replicate to
+	IndexName = "ravendb-elasticsearch-replication-demo",
+
+	// Name of RavenDB collection to execute the replication script on
+	RavenEntityName = "Orders",
+
+	// Some configurations to Elasticsearch types from RavenDB collections
+	// For each replicated types, we need to specify where the RavenDB
+	// document ID will reside, so we can cleanse it when we replicate
+	// deletions or updates.
+	// Ignore the Sql prefix, just some code reuse, it will be removed soon
+	SqlReplicationTables =
+	{
+		// Configuration for the type to hold the main document being replicated
+		new SqlReplicationTable
+		{
+			TableName = "Orders",
+			// _id means this is the original document being replicated
+			DocumentKeyColumn = "_id"
+		},
+
+		// Replicating a flat structure by mapping an array of objects
+		// to their own Elasticsearch type.
+		// This is not required with Elasticsearch, but sometimes will
+		// be desired
+		new SqlReplicationTable
+		{
+			TableName = "OrderLines",
+			DocumentKeyColumn = "OrderId"
+		},
+	},
+
+	// The replication script, see notes below
+	Script = @"
+        var orderData = {
+            Id: documentId,
+            OrderLinesCount: this.OrderLines.length,
+            $timestamp: this.CreatedAt,
+            CustomerName: this.CustomerName,
+            TotalCost: 0
+        };
+ 
+        for (var i = 0; i < this.OrderLines.length; i++) {
+            var line = this.OrderLines[i];
+            orderData.TotalCost += (line.UnitPrice * line.Quantity);
+ 
+            replicateToOrderLines({
+                $timestamp: this.CreatedAt,
+                OrderId: documentId,
+                PurchasedAt: orderData.CreatedAt,
+                Quantity: line.Quantity,
+                UnitPrice: line.UnitPrice,
+                ProductId: line.ProductId,
+                ProductName: line.ProductName
+            });
+        }
+
+        replicateToOrders(orderData);"
+}
+```
+
+### The replication script
+
+The replication script is just Javascript, executed in protected mode. Pretty much everything you can do in Javascript, you can do here.
+
+There are 2 important conventions to note:
+
+1. `replicateTo<type_name>(<data_object>)` is called to create a JSON document out of the `data_object` parameter and push it as a document to Elasticsearch under the configured index name and type `type_name`.
+
+2. All Kibana dashboard expect a timespan field, which can be configured, but is defaulted to `@timestamp`. You can define the `@timestamp` field by using the proper Javascript notation `$timestamp = ...`. If not timestamp was specified by script, `DateTimeOffset.UtcNow` will be automatically set as the document timestamp by the bundle.
+
 ## Kibana references
 
 See http://www.elasticsearch.org/overview/kibana/ to get an idea of what Kibana is.
