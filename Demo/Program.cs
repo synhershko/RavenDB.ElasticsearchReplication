@@ -57,7 +57,7 @@ namespace Demo
         var orderData = {
             Id: documentId,
             OrderLinesCount: this.OrderLines.length,
-            @timestamp: this.CreatedAt,
+            $timestamp: this.CreatedAt,
             CustomerName: this.CustomerName,
             TotalCost: 0
         };
@@ -67,7 +67,7 @@ namespace Demo
             orderData.TotalCost += (line.UnitPrice * line.Quantity);
  
             replicateToOrderLines({
-                @timestamp: this.CreatedAt,
+                $timestamp: this.CreatedAt,
                 OrderId: documentId,
                 PurchasedAt: orderData.CreatedAt,
                 Quantity: line.Quantity,
@@ -96,7 +96,7 @@ namespace Demo
                         },
                         Script = @"
         var data = {
-            @timestamp: this.CreatedAt,
+            $timestamp: this.CreatedAt,
             IpAddress: this.IpAddress
         };
 
