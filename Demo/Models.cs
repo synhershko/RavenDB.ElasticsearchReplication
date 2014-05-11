@@ -3,6 +3,12 @@ using System.Collections.Generic;
 
 namespace Demo.Models
 {
+    public class ShoppingCart
+    {
+        public DateTimeOffset CreatedAt { get; set; }
+        public string IpAddress { get; set; }
+    }
+
     public class Order
     {
         public string CustomerName { get; set; }
