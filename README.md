@@ -127,11 +127,37 @@ new ElasticsearchReplicationConfig
 
 The replication script is just Javascript, executed in protected mode. Pretty much everything you can do in Javascript, you can do here.
 
-There are 2 important conventions to note:
+There are several important conventions to note:
 
 1. `replicateTo<type_name>(<data_object>)` is called to create a JSON document out of the `data_object` parameter and push it as a document to Elasticsearch under the configured index name and type `type_name`.
 
 2. All Kibana dashboard expect a timespan field, which can be configured, but is defaulted to `@timestamp`. You can define the `@timestamp` field by using the proper Javascript notation `$timestamp = ...`. If not timestamp was specified by script, `DateTimeOffset.UtcNow` will be automatically set as the document timestamp by the bundle.
+
+3. Elasticsearch will automatically detect numerics, dates and boolean values and index them appropriately. Strings require careful handling, as described below.
+
+### String indexing
+
+By default Elasticsearch indexes all strings as `analyzed`, meaning they will be tokenized and searchable on individual words. This also means for many types of data, things will not work they way you expect them to (for example: faceting on a string value).
+
+To avoid that, the bundle provides a default mapping that tells Elasticsearch not to analyze string values unless their field name is prefixed with `_analyzed`. So, assuming you have this in the replication script:
+
+`
+...
+ProductName = this.ProductName,
+ProductName_analyzed = this.ProductName,
+...
+`
+
+The `ProductName` field will be neither tokenized nor analyzed. While it can be searched on, only exact term lookups will be possible. But, it will behave as you'd expect on term facets (that is, like in the Top Products graph shown in the above screenshot).
+
+The `ProductName_analyzed` field, on the other hand, will behave differently with facet operations (each individual word will be count as a value), but it could then be searched on like you'd expect, not requiring exact matches. Just make sure you pay attention to the [analyzer used](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/analysis-analyzers.html).
+
+The mapping will not be applied by default. If you are interested in this (recommended) behavior, make sure to apply the mapping by calling the following code, _before_ starting replication to the Elasticsearch cluster:
+
+```csharp
+var cfg = new ElasticsearchReplicationConfig { ... }
+cfg.SetupDefaultMapping();
+```
 
 ## Kibana references
 
