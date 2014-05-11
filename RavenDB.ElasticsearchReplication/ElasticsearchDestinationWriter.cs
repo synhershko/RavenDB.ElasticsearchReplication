@@ -158,7 +158,7 @@ namespace Raven.Bundles.ElasticsearchReplication
                 }
 
                 // Setup timestamps, converting from a Javascript notation to an ES/Kibana notation
-                if (!o.ContainsKey("$timestamp"))
+                if (o.ContainsKey("$timestamp"))
                 {
                     o["@timestamp"] = o["$timestamp"];
                     o.Remove("$timestamp");
