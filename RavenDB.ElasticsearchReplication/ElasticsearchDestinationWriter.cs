@@ -103,10 +103,10 @@ namespace Raven.Bundles.ElasticsearchReplication
 
                 foreach (var deleteByQueryCommand in deleteByQueryCommands)
                 {
-                    var rsp = elasticsearchClient.DeleteByQuery(deleteByQueryCommand.IndexName, deleteByQueryCommand.Command);
+                    var rsp = elasticsearchClient.DeleteByQuery(deleteByQueryCommand.IndexName, deleteByQueryCommand.TypeName, deleteByQueryCommand.Command);
                     if (rsp.Success) continue;
 
-                    var sb = new StringBuilder("Error while replicating to Elasticsearch on " + rsp.RequestUrl);
+                    var sb = new StringBuilder("Error while replicating deletion commands to Elasticsearch on " + rsp.RequestUrl);
                     sb.Append(string.Format(" (HTTP status code {0}; response: {1})", rsp.HttpStatusCode, rsp.Response));
                     throw new Exception(sb.ToString(), rsp.OriginalException);
                 }
@@ -189,8 +189,15 @@ namespace Raven.Bundles.ElasticsearchReplication
             }
             else
             {
-                // TODO
-                new DeleteByQueryCommand {IndexName = targetIndexName, Command = ""};
+                foreach (var identifier in identifiers)
+                {
+                    deleteByQueryCommands.Add(new DeleteByQueryCommand
+                                              {
+                                                  IndexName = targetIndexName,
+                                                  TypeName = tableName,
+                                                  Command = @"{""query"" : {""term"" : { """ + pkName + @""" : """ + identifier + @""" } } }" // TODO will break if default mapping wasn't applied
+                                              });
+                }
             }
 
         }

@@ -3,6 +3,7 @@
     public class DeleteByQueryCommand
     {
         public string IndexName { get; set; }
+        public string TypeName { get; set; }
         public string Command { get; set; }
     }
 }
