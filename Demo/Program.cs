@@ -103,6 +103,11 @@ namespace Demo
         replicateToShoppingCarts(data);"
                     }
                                          };
+
+
+                // Load the sample dashboard so we can push it to the cluster next
+                var sampleDashboard = Helpers.GetEmbeddedJson(typeof(Program).Assembly, ".KibanaOverviewDashboard.json");
+
                 using (var session = store.OpenSession())
                 {
                     foreach (var cfg in replicationConfigs)
@@ -110,6 +115,9 @@ namespace Demo
                         // Sets up the bundle's default Elasticsearch mapping. We call this separately on every config
                         // because potentially each config may replicate to a different Elasticsearch cluster
                         cfg.SetupDefaultMapping();
+
+                        // Add the sample Kibana dashboard
+                        cfg.AddKibanaDashboard("RavenDB-Orders-Overview", sampleDashboard);
 
                         session.Store(cfg);
                     }
@@ -140,8 +148,6 @@ namespace Demo
                         session.SaveChanges();
                     }
                 }, null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
-
-                // TODO add Kibana dashboard settings
 
                 Console.WriteLine("Posting Orders randomly to an in-memory RavenDB instance");
                 Console.WriteLine("That instance is then replicating some of that data to an Elasticsearch instance on " + ElasticsearchUrl);

@@ -10,7 +10,7 @@ namespace Raven.Bundles.ElasticsearchReplication
 {
     public static class Helpers
     {
-        internal static ElasticsearchClient GetElasticClient(this ElasticsearchReplicationConfig cfg)
+        public static ElasticsearchClient GetElasticClient(this ElasticsearchReplicationConfig cfg)
         {
             var elasticsearchNodes = cfg.ElasticsearchNodeUrls;
             var connectionPool = elasticsearchNodes.Count == 1 ? (IConnectionPool)
@@ -18,16 +18,19 @@ namespace Raven.Bundles.ElasticsearchReplication
             return new ElasticsearchClient(new ConnectionConfiguration(connectionPool));
         }
 
+        public static string GetEmbeddedJson(Assembly assembly, string embeddedResourcePath)
+        {
+            using (var stream = assembly.GetManifestResourceStream(assembly.GetName().Name + embeddedResourcePath))
+            using (var reader = new StreamReader(stream))
+            {
+                return reader.ReadToEnd();
+            }
+        }
+
         public static void SetupDefaultMapping(this ElasticsearchReplicationConfig cfg)
         {
             var assembly = typeof (ElasticsearchReplicationTask).Assembly;
-            string template;
-            using (var stream = assembly.GetManifestResourceStream(assembly.GetName().Name + ".DefaultIndexTemplate.json"))
-            using (var reader = new StreamReader(stream))
-            {
-                template = reader.ReadToEnd();
-            }
-
+            var template = GetEmbeddedJson(assembly, ".DefaultIndexTemplate.json");
             if (string.IsNullOrWhiteSpace(template))
                 throw new Exception("Can't find the mapping");
 
@@ -35,6 +38,15 @@ namespace Raven.Bundles.ElasticsearchReplication
             var rsp = client.IndicesPutTemplateForAll("ravendb-elasticsearch-replication", template);
             if(!rsp.Success)
                 throw new Exception("Error while trying to put a new template", rsp.OriginalException);
+        }
+
+        public static void AddKibanaDashboard(this ElasticsearchReplicationConfig cfg, string dashboardName,
+            string dashboardSource)
+        {
+            var client = GetElasticClient(cfg);
+            var rsp = client.Index("kibana-int", "dashboard", dashboardName, dashboardSource);
+            if (!rsp.Success)
+                throw new Exception("Error while trying to put Kibana dashboard " + dashboardName, rsp.OriginalException);
         }
     }
 }
