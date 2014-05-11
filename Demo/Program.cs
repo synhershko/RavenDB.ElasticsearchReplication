@@ -13,7 +13,7 @@ namespace Demo
     {
         public static string ElasticsearchUrl = "http://localhost:9200";
 
-        private static Timer timer;
+        private static Timer timer, timer2;
 
         static void Main(string[] args)
         {
@@ -31,10 +31,10 @@ namespace Demo
                 store.Configuration.Settings.Add("Raven/ActiveBundles", "ElasticsearchReplication"); // Enable the bundle
                 store.Initialize();
 
-                using (var session = store.OpenSession())
-                {
-                    var cfg = new ElasticsearchReplicationConfig
-                    {
+                var replicationConfigs = new List<ElasticsearchReplicationConfig>
+                                         {
+                                             new ElasticsearchReplicationConfig
+                                             {
                         Id = "Raven/ElasticsearchReplication/Configuration/OrdersAndLines",
                         Name = "OrdersAndLines",
                         ElasticsearchNodeUrls = new List<Uri>{new Uri(ElasticsearchUrl)},
@@ -57,7 +57,7 @@ namespace Demo
         var orderData = {
             Id: documentId,
             OrderLinesCount: this.OrderLines.length,
-            CreatedAt: this.CreatedAt,
+            @timestamp: this.CreatedAt,
             CustomerName: this.CustomerName,
             TotalCost: 0
         };
@@ -67,24 +67,56 @@ namespace Demo
             orderData.TotalCost += (line.UnitPrice * line.Quantity);
  
             replicateToOrderLines({
+                @timestamp: this.CreatedAt,
                 OrderId: documentId,
                 PurchasedAt: orderData.CreatedAt,
                 Quantity: line.Quantity,
                 UnitPrice: line.UnitPrice,
-                ProductId: line.ProductId
+                ProductId: line.ProductId,
+                ProductName: line.ProductName
             });
         }
 
         replicateToOrders(orderData);"
-                    };
+                    },
+                    new ElasticsearchReplicationConfig
+                    {
+                        Id = "Raven/ElasticsearchReplication/Configuration/ShoppingCarts",
+                        Name = "ShoppingCarts",
+                        ElasticsearchNodeUrls = new List<Uri>{new Uri(ElasticsearchUrl)},
+                        IndexName = "ravendb-elasticsearch-replication-demo",
+                        RavenEntityName = "ShoppingCarts",
+                        SqlReplicationTables =
+                        {
+                            new SqlReplicationTable
+                            {
+                                TableName = "ShoppingCarts",
+                                DocumentKeyColumn = "_id"
+                            },
+                        },
+                        Script = @"
+        var data = {
+            @timestamp: this.CreatedAt,
+            IpAddress: this.IpAddress
+        };
 
-                    // Sets up the bundle's default Elasticsearch mapping
-                    cfg.SetupDefaultMapping();
-                    
-                    session.Store(cfg);
+        replicateToShoppingCarts(data);"
+                    }
+                                         };
+                using (var session = store.OpenSession())
+                {
+                    foreach (var cfg in replicationConfigs)
+                    {
+                        // Sets up the bundle's default Elasticsearch mapping. We call this separately on every config
+                        // because potentially each config may replicate to a different Elasticsearch cluster
+                        cfg.SetupDefaultMapping();
+
+                        session.Store(cfg);
+                    }
                     session.SaveChanges();
                 }
 
+                // Simulate orders and shopping carts logging using different threads / clients
                 timer = new Timer(state =>
                 {
                     using (var session = store.OpenSession())
@@ -96,6 +128,18 @@ namespace Demo
                         session.SaveChanges();
                     }
                 }, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+
+                timer2 = new Timer(state =>
+                {
+                    using (var session = store.OpenSession())
+                    {
+                        for (int i = 0; i < GetRandom.Int(0, 10); i++)
+                        {
+                            session.Store(FakeDataGenerator.CreateAFakeShoppingCart());
+                        }
+                        session.SaveChanges();
+                    }
+                }, null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
 
                 // TODO add Kibana dashboard settings
 
